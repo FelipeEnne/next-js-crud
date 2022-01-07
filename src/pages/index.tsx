@@ -1,50 +1,21 @@
 import Layout from "../components/Layout"
 import Table from "../components/Table"
 import Button from "../components/Button"
-import Client from "../core/Client"
 import Form from "../components/Form"
-import { useEffect, useState } from "react"
-import ClientRepo from "../core/ClientRepo"
-import CollectionClient from "../../firebase/db/CollectionClient"
+import useClients from "../hooks/useClients"
 
 export default function Home() {
 
-  const repo: ClientRepo = new CollectionClient()
-
-  const [client, setClient] = useState<Client>(Client.empty())
-  const [clients, setClients] = useState<Client[]>([])
-  const [show, setShow] = useState<'table' | 'form'>('table')
-
-  useEffect(
-    getAllClients
-  ,[])
-
-  function getAllClients() {
-    repo.getAllClients().then(clients => {
-      setClients(clients)
-      setShow('table')
-    })
-  }
-
-  function clientSelected(client: Client) {
-    setClient(client)
-    setShow('form')
-  }
-
-  async function clientExcluded(client: Client) {
-    await repo.delete(client)
-    getAllClients()
-  }
-
-  function newClient() {
-    setClient(Client.empty())
-    setShow('form')
-  }
-
-  async function saveClient(client: Client) {
-    await repo.save(client)
-    getAllClients()
-  }
+  const { 
+    saveClient, 
+    newClient, 
+    deleteClient, 
+    selectClient,
+    client,
+    clients,
+    isShowTable,
+    showTable
+  } = useClients()
 
   return (
     <div className={`
@@ -53,7 +24,7 @@ export default function Home() {
       text-white
     `}>
       <Layout title="Simple Register">
-        {show === 'table' ? (
+        {isShowTable ? (
           <>
             <div className="flex justify-end">
               <Button className={`
@@ -67,8 +38,8 @@ export default function Home() {
             </div>
             <Table 
               clients={clients} 
-              clientSelected={clientSelected}
-              clientExcluded={clientExcluded}
+              clientSelected={selectClient}
+              clientExcluded={deleteClient}
             > 
             </Table>
           </>
@@ -76,8 +47,8 @@ export default function Home() {
           <Form  
             client={client}
             selectClient={saveClient}
-            cancel={() => setShow('table')
-          }/>
+            cancel={showTable}
+          />
         )}
       </Layout>
     </div>
