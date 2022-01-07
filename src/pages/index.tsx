@@ -1,21 +1,49 @@
 import Layout from "../components/Layout"
 import Table from "../components/Table"
+import Button from "../components/Button"
 import Client from "../core/Client"
+import Form from "../components/Form"
+import { useEffect, useState } from "react"
+import ClientRepo from "../core/ClientRepo"
+import CollectionClient from "../../firebase/db/CollectionClient"
 
 export default function Home() {
 
-  const clients = [
-    new Client('test1', 123, 'top1'),
-    new Client('test2', 456, 'top3'),
-    new Client('test3', 789, 'top3')
-  ]
+  const repo: ClientRepo = new CollectionClient()
 
-  function clientSelected(client: Client) {
+  const [client, setClient] = useState<Client>(Client.empty())
+  const [clients, setClients] = useState<Client[]>([])
+  const [show, setShow] = useState<'table' | 'form'>('table')
 
+  useEffect(
+    getAllClients
+  ,[])
+
+  function getAllClients() {
+    repo.getAllClients().then(clients => {
+      setClients(clients)
+      setShow('table')
+    })
   }
 
-  function clientExcluded(client: Client) {
-    
+  function clientSelected(client: Client) {
+    setClient(client)
+    setShow('form')
+  }
+
+  async function clientExcluded(client: Client) {
+    await repo.delete(client)
+    getAllClients()
+  }
+
+  function newClient() {
+    setClient(Client.empty())
+    setShow('form')
+  }
+
+  async function saveClient(client: Client) {
+    await repo.save(client)
+    getAllClients()
   }
 
   return (
@@ -25,12 +53,32 @@ export default function Home() {
       text-white
     `}>
       <Layout title="Simple Register">
-        <Table 
-          clients={clients} 
-          clientSelected={clientSelected}
-          clientExcluded={clientExcluded}
-        > 
-        </Table>
+        {show === 'table' ? (
+          <>
+            <div className="flex justify-end">
+              <Button className={`
+                mb-4
+                bg-gradient-to-r from-green-400 to-green-700
+                `}
+                onClick={newClient}
+              >
+                New Client
+              </Button>
+            </div>
+            <Table 
+              clients={clients} 
+              clientSelected={clientSelected}
+              clientExcluded={clientExcluded}
+            > 
+            </Table>
+          </>
+        ) : (
+          <Form  
+            client={client}
+            selectClient={saveClient}
+            cancel={() => setShow('table')
+          }/>
+        )}
       </Layout>
     </div>
   )

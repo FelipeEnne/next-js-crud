@@ -9,6 +9,7 @@
     "css-load": "npx tailwindcss -i ./src/styles/input.tailwind.css -o ./src/styles/tailwind.css --watch"
   },
   "dependencies": {
+    "firebase": "^8.8.0",
     "next": "12.0.7",
     "react": "17.0.2",
     "react-dom": "17.0.2"
